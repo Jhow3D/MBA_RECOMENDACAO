@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Recomendação Híbrido – Streaming Inteligente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Streaming Neutrals -->
+    <!-- Application Structure Plan: A single-page, top-down narrative structure with a sticky navigation bar was chosen to guide the user logically through the project's story, from the high-level objective to the technical details and future vision. This is more engaging than a slide deck and allows for interactive exploration. Key sections are: 1) A 'Hero' section to grab attention. 2) 'O Sistema' to explain the data foundation with a visual diagram. 3) 'Como Funciona', the core interactive section with a clickable diagram explaining the hybrid model and a functional mockup of the Streamlit UI. 4) 'Benefícios & Próximos Passos' to summarize value and future plans. This structure prioritizes understanding and engagement over a rigid, slide-by-slide format. -->
+    <!-- Visualization & Content Choices: Report Info: Technical approach (TF-IDF, Cosine Sim, Popularity Score). -> Goal: Explain a complex process. -> Viz/Presentation: Interactive HTML/CSS diagram where users click components ('Análise de Conteúdo', 'Popularidade') to reveal explanations. -> Interaction: Click-to-reveal. -> Justification: More engaging and self-paced than static text, clarifies the two-part model. -> Library/Method: Vanilla JS and Tailwind CSS. | Report Info: Streamlit UI. -> Goal: Demonstrate the user experience. -> Viz/Presentation: A functional HTML/CSS/JS mockup with a dropdown for title selection and tabs for platforms. -> Interaction: Select from dropdown, click tabs. -> Justification: Provides a tangible feel for the final product, making the concept concrete. -> Library/Method: Vanilla JS and Tailwind CSS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .section-title {
+            font-weight: 800;
+            font-size: 2.25rem;
+            line-height: 2.5rem;
+            letter-spacing: -0.025em;
+            word-break: break-word; /* Ensure long words break */
+        }
+        .section-subtitle {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+            color: #495057;
+            word-break: break-word; /* Ensure long words break */
+        }
+        .nav-link {
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #4a00e0;
+        }
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-bottom: 4px solid transparent;
+            word-break: break-word; /* Ensure long words break */
+        }
+        .tab-btn.active {
+            font-weight: 700;
+        }
+        .tab-btn.netflix.active { border-color: #E50914; color: #E50914; }
+        .tab-btn.prime.active { border-color: #9b59b6; color: #9b59b6; }
+        .tab-btn.disney.active { border-color: #1a78cf; color: #1a78cf; }
+        .tech-box {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            word-break: break-word; /* Ensure long words break */
+        }
+        .tech-box.active {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Ensure text in smaller containers also wraps */
+        .text-gray-600, .text-gray-700, .text-gray-800 {
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-gray-800">
+                Streaming <span class="text-purple-600">Inteligente</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#inicio" class="nav-link text-gray-600">Início</a>
+                <a href="#sistema" class="nav-link text-gray-600">O Sistema</a>
+                <a href="#como-funciona" class="nav-link text-gray-600">Como Funciona</a>
+                <a href="#futuro" class="nav-link text-gray-600">Próximos Passos</a>
+                <button id="redirect-button-desktop" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">Acessar Projeto</button>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#inicio" class="block py-2 nav-link text-gray-600">Início</a>
+            <a href="#sistema" class="block py-2 nav-link text-gray-600">O Sistema</a>
+            <a href="#como-funciona" class="block py-2 nav-link text-gray-600">Como Funciona</a>
+            <a href="#futuro" class="block py-2 nav-link text-gray-600">Próximos Passos</a>
+            <button id="redirect-button-mobile" class="w-full mt-4 bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">Acessar Projeto</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="inicio" class="py-20 md:py-32">
+            <div class="container mx-auto px-6 text-center">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight break-words">
+                    Sistema de Recomendação Híbrido
+                </h1>
+                <p class="mt-4 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto break-words">
+                    Uma nova era na descoberta de conteúdo, unificando suas plataformas de streaming favoritas para encontrar exatamente o que você quer assistir.
+                </p>
+                <a href="#como-funciona" class="mt-8 inline-block bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg px-8 py-3 transition-transform duration-300 hover:scale-105">
+                    Veja como funciona
+                </a>
+            </div>
+        </section>
+
+        <section id="sistema" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="section-title text-gray-900">O Ecossistema de Dados</h2>
+                    <p class="section-subtitle max-w-3xl mx-auto mt-4">
+                        Nosso sistema se baseia em uma fundação sólida de dados, combinando os catálogos das maiores plataformas de streaming para criar uma visão unificada do universo do entretenimento.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8 items-center text-center">
+                    <div class="flex flex-col items-center p-6">
+                        <div class="text-6xl mb-4">🔴</div>
+                        <h3 class="text-2xl font-bold mb-2 break-words">Netflix</h3>
+                        <p class="text-gray-600 break-words">netflix_titles.csv</p>
+                    </div>
+                    <div class="flex flex-col items-center p-6">
+                        <div class="text-6xl mb-4">🟣</div>
+                        <h3 class="text-2xl font-bold mb-2 break-words">Amazon Prime</h3>
+                        <p class="text-gray-600 break-words">amazon_prime_titles.csv</p>
+                    </div>
+                    <div class="flex flex-col items-center p-6">
+                        <div class="text-6xl mb-4">🔵</div>
+                        <h3 class="text-2xl font-bold mb-2 break-words">Disney+</h3>
+                        <p class="text-gray-600 break-words">disney_plus_titles.csv</p>
+                    </div>
+                </div>
+
+                <div class="mt-16 text-center">
+                    <div class="inline-block text-4xl mb-4">⬇️</div>
+                    <div class="bg-gray-100 rounded-xl p-8 max-w-2xl mx-auto shadow-md">
+                        <h3 class="text-2xl font-bold text-gray-800 break-words">DataFrame Unificado</h3>
+                        <p class="text-gray-600 mt-2 break-words">
+                            As três fontes de dados são consolidadas em um único DataFrame robusto, contendo informações cruciais como título, descrição, gênero, data de lançamento e muito mais para uma análise completa.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="como-funciona" class="py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="section-title text-gray-900">A Engenharia da Recomendação</h2>
+                    <p class="section-subtitle max-w-3xl mx-auto mt-4">
+                        Nossa abordagem híbrida combina duas técnicas poderosas para gerar recomendações precisas e relevantes. Clique nos componentes abaixo para entender cada etapa do processo.
+                    </p>
+                </div>
+                
+                <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 mb-8">
+                    <div id="tech-content" class="tech-box bg-white p-8 rounded-xl shadow-lg w-full md:w-1/2 border-2 border-transparent">
+                        <h3 class="text-xl font-bold mb-2 flex items-center break-words">
+                            <span class="text-2xl mr-3">📝</span> Análise de Conteúdo
+                        </h3>
+                        <p class="text-gray-600 break-words">Usamos <strong>TF-IDF</strong> para extrair as palavras-chave mais importantes das descrições e a <strong>Similaridade de Cosseno</strong> para encontrar conteúdos com temas e atmosferas parecidas.</p>
+                    </div>
+                    <div class="text-3xl font-bold text-purple-600 mx-4 my-4 md:my-0">+</div>
+                    <div id="tech-popularity" class="tech-box bg-white p-8 rounded-xl shadow-lg w-full md:w-1/2 border-2 border-transparent">
+                        <h3 class="text-xl font-bold mb-2 flex items-center break-words">
+                            <span class="text-2xl mr-3">📈</span> Score de Popularidade
+                        </h3>
+                        <p class="text-gray-600 break-words">Um score com <strong>decaimento exponencial</strong> é aplicado com base no ano de adição do título, priorizando conteúdos mais recentes e relevantes para o momento atual.</p>
+                    </div>
+                </div>
+
+                <div id="tech-explanation" class="bg-white p-8 rounded-xl shadow-inner mt-8 max-w-4xl mx-auto transition-all duration-500">
+                    <p class="text-center text-gray-700 text-lg break-words">A combinação do <strong>Score de Similaridade</strong> (contextual) com o <strong>Score de Popularidade</strong> (temporal) cria nossa recomendação híbrida, garantindo sugestões relevantes e atuais.</p>
+                </div>
+
+                <div class="mt-24">
+                    <div class="text-center mb-12">
+                        <h3 class="text-3xl font-bold text-gray-900 break-words">Teste a Interface</h3>
+                        <p class="text-lg text-gray-600 mt-2 break-words">Simule a experiência do usuário escolhendo um título e vendo as recomendações.</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl mx-auto overflow-hidden">
+                        <div class="p-8">
+                            <label for="title-select" class="block text-sm font-medium text-gray-700 mb-2">Escolha um título para receber recomendações:</label>
+                            <select id="title-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                <option value="stranger-things">Stranger Things</option>
+                                <option value="the-mandalorian">The Mandalorian</option>
+                                <option value="the-boys">The Boys</option>
+                            </select>
+                        </div>
+                        <div class="border-t border-gray-200">
+                            <div class="flex justify-center border-b border-gray-200">
+                                <button data-tab="netflix" class="tab-btn netflix p-4 text-gray-500 font-medium active">Netflix</button>
+                                <button data-tab="prime" class="tab-btn prime p-4 text-gray-500 font-medium">Amazon Prime</button>
+                                <button data-tab="disney" class="tab-btn disney p-4 text-gray-500 font-medium">Disney+</button>
+                            </div>
+                            <div id="recommendations-container" class="p-8">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section id="futuro" class="py-20 bg-white">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="section-title text-gray-900">Benefícios e Próximos Passos</h2>
+                    <p class="section-subtitle max-w-3xl mx-auto mt-4">
+                        Nosso sistema já oferece grandes vantagens, mas estamos sempre olhando para o futuro, planejando novas funcionalidades para aprimorar ainda mais a experiência.
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div>
+                        <h3 class="text-2xl font-bold mb-6 text-center md:text-left break-words">✅ Benefícios Atuais</h3>
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm break-words"><strong>Simples e Rápido:</strong> Interface intuitiva e recomendações geradas em segundos.</div>
+                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm break-words"><strong>Multiplataforma:</strong> Uma única solução para os principais serviços de streaming.</div>
+                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm break-words"><strong>Recomendação Personalizada:</strong> Foco no que o usuário realmente quer assistir.</div>
+                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm break-words"><strong>Potencial de Expansão:</strong> Base sólida para incorporar dados reais de visualização.</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-6 text-center md:text-left break-words">🚀 Próximos Passos</h3>
+                        <div class="space-y-4">
+                             <div class="bg-blue-50 p-6 rounded-lg shadow-sm break-words"><strong>Aprimorar Modelo de Popularidade:</strong> Integrar dados reais de visualizações e engajamento.</div>
+                             <div class="bg-blue-50 p-6 rounded-lg shadow-sm break-words"><strong>Implementar Histórico do Usuário:</strong> Armazenar e analisar o histórico para recomendações mais precisas.</div>
+                             <div class="bg-blue-50 p-6 rounded-lg shadow-sm break-words"><strong>Disponibilizar como Web App Público:</strong> Tornar o sistema acessível a um público mais amplo.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 Streaming Inteligente. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            const techContent = document.getElementById('tech-content');
+            const techPopularity = document.getElementById('tech-popularity');
+            const techExplanation = document.getElementById('tech-explanation');
+            const explanationContent = {
+                content: `<h3 class="text-xl font-bold mb-2">Análise de Conteúdo</h3><p class="text-gray-700">Esta etapa é o coração da personalização. Usamos <strong>TF-IDF (Term Frequency-Inverse Document Frequency)</strong> para analisar as sinopses e identificar os termos que melhor definem um filme ou série. Em seguida, a <strong>Similaridade de Cosseno</strong> mede o quão "próximos" dois conteúdos são com base nesses termos, encontrando títulos com temas e estilos semelhantes.</p>`,
+                popularity: `<h3 class="text-xl font-bold mb-2">Score de Popularidade</h3><p class="text-gray-700">Para garantir que as recomendações sejam atuais, aplicamos um score de popularidade com <strong>decaimento exponencial</strong>. Títulos adicionados mais recentemente às plataformas recebem um peso maior, refletindo as tendências e o que está em alta no momento.</p>`
+            };
+
+            function updateExplanation(type) {
+                techExplanation.innerHTML = explanationContent[type];
+                techExplanation.classList.remove('fade-in');
+                void techExplanation.offsetWidth;
+                techExplanation.classList.add('fade-in');
+
+                if (type === 'content') {
+                    techContent.classList.add('active', 'border-purple-400');
+                    techPopularity.classList.remove('active', 'border-purple-400');
+                } else {
+                    techPopularity.classList.add('active', 'border-purple-400');
+                    techContent.classList.remove('active', 'border-purple-400');
+                }
+            }
+
+            techContent.addEventListener('click', () => updateExplanation('content'));
+            techPopularity.addEventListener('click', () => updateExplanation('popularity'));
+
+            const titleSelect = document.getElementById('title-select');
+            const tabs = document.querySelectorAll('.tab-btn');
+            const recommendationsContainer = document.getElementById('recommendations-container');
+
+            const mockData = {
+                'stranger-things': {
+                    netflix: ['The OA', 'Dark', 'Black Mirror'],
+                    prime: ['The Expanse', 'Upload', 'Tales from the Loop'],
+                    disney: ['WandaVision', 'Loki', 'Gravity Falls']
+                },
+                'the-mandalorian': {
+                    netflix: ['The Witcher', 'Altered Carbon', 'Cowboy Bebop'],
+                    prime: ['The Expanse', 'Star Trek: Picard', 'Wheel of Time'],
+                    disney: ['Andor', 'The Bad Batch', 'Obi-Wan Kenobi']
+                },
+                'the-boys': {
+                    netflix: ['The Umbrella Academy', 'Jupiter\'s Legacy', 'Jessica Jones'],
+                    prime: ['Invincible', 'Gen V', 'Preacher'],
+                    disney: ['Daredevil', 'The Punisher', 'Moon Knight']
+                }
+            };
+
+            function renderRecommendations() {
+                const selectedTitle = titleSelect.value;
+                const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+                const recommendations = mockData[selectedTitle][activeTab];
+
+                let html = '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 fade-in">';
+                recommendations.forEach(title => {
+                    html += `
+                        <div class="bg-gray-50 p-4 rounded-lg text-center shadow-sm">
+                            <div class="w-full h-32 bg-gray-300 rounded-md mb-3 flex items-center justify-center">
+                                <span class="text-gray-500 text-sm">Poster</span>
+                            </div>
+                            <h4 class="font-bold text-gray-800 break-words">${title}</h4>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                recommendationsContainer.innerHTML = html;
+            }
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    renderRecommendations();
+                });
+            });
+
+            titleSelect.addEventListener('change', renderRecommendations);
+            
+            updateExplanation('content');
+            renderRecommendations();
+
+            // Project Redirection Functionality
+            const redirectButtonDesktop = document.getElementById('redirect-button-desktop');
+            const redirectButtonMobile = document.getElementById('redirect-button-mobile');
+
+            function redirectToLink() {
+                const projectLink = 'COLOQUE O LINK AQUI'; // O link foi atualizado aqui
+                if (projectLink) { // Apenas verifica se o link existe, já que agora ele tem um valor fixo
+                    window.open(projectLink, '_blank');
+                } else {
+                    console.warn('O link do projeto não foi definido.');
+                }
+            }
+
+            if (redirectButtonDesktop) {
+                redirectButtonDesktop.addEventListener('click', redirectToLink);
+            }
+            if (redirectButtonMobile) {
+                redirectButtonMobile.addEventListener('click', redirectToLink);
+            }
+        });
+    </script>
+</body>
+</html>
